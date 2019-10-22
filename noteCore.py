@@ -13,7 +13,6 @@ def userLogin(uname,passwd):
     ret = 0
     try:
         if rows[1] == uname and rows[2] == passwd:
-            print("doru")
             ret = rows[0]
         else:
             ret = 0
@@ -25,6 +24,7 @@ def userLogin(uname,passwd):
 def noteAdd(uid,head,txt):
     conn = sqlite3.connect("note.db")
     conn.execute("INSERT INTO notes(noteHeader,noteText,userId) VALUES(?,?,?)", (head,txt,uid))
+    conn.commit()
     conn.close()
 
 def noteRemove(uid,noteNumber):
@@ -38,6 +38,33 @@ def noteRemove(uid,noteNumber):
         ret = "Operation completed"
     else:
         ret = "Unauthorized operation"
+    conn.commit()
     conn.close()
     return ret
 
+def noteGet(uid,noteNumber):
+    conn = sqlite3.connect("note.db")
+    cur = conn.cursor()
+    ret = ""
+    cur.execute("SELECT userId FROM notes WHERE noteNumber=?", (noteNumber,))
+    rows = cur.fetchone()
+    if rows[0] == uid:
+        cur.execute("SELECT noteNumber,noteHeader,noteText FROM notes WHERE noteNumber=?", (noteNumber,))
+        noteInfo = cur.fetchone()
+        ret += str(noteInfo[0]) +"|"+noteInfo[1] +"|"+noteInfo[2]
+    else:
+        ret = "Unauthorized operation"
+    conn.close()
+    return ret
+
+def noteGetNumbers(uid):
+    conn = sqlite3.connect("note.db")
+    cur = conn.cursor()
+    ret = []
+    cur.execute("SELECT noteNumber FROM notes WHERE userId=?", (uid,))
+    rows = cur.fetchall()
+    for row in rows:
+        ret.append(row[0])
+    conn.close()
+    return ret
+    
